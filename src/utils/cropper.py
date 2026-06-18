@@ -20,6 +20,7 @@ from .io import contiguous
 from .rprint import rlog as log
 from .face_analysis_diy import FaceAnalysisDIY
 from .human_landmark_runner import LandmarkRunner as HumanLandmark
+from .onnx_provider import resolve_onnx_providers
 
 def make_abs_path(fn):
     return osp.join(osp.dirname(osp.realpath(__file__)), fn)
@@ -50,16 +51,19 @@ class Cropper(object):
         else:
             try:
                 if torch.backends.mps.is_available():
-                    # Shape inference currently fails with CoreMLExecutionProvider
-                    # for the retinaface model
                     device = "mps"
-                    face_analysis_wrapper_provider = ["CPUExecutionProvider"]
                 else:
                     device = "cuda"
-                    face_analysis_wrapper_provider = ["CUDAExecutionProvider"]
             except:
-                    device = "cuda"
-                    face_analysis_wrapper_provider = ["CUDAExecutionProvider"]
+                device = "cuda"
+            if device == "mps":
+                # Shape inference currently fails with CoreMLExecutionProvider
+                # for the retinaface model, so keep face analysis on CPU.
+                face_analysis_wrapper_provider = ["CPUExecutionProvider"]
+            else:
+                # Auto-resolves to CUDA / ROCm (AMD) / CPU based on what the
+                # installed onnxruntime build actually offers.
+                face_analysis_wrapper_provider = resolve_onnx_providers(prefer=device, device_id=device_id)
         self.face_analysis_wrapper = FaceAnalysisDIY(
                     name="buffalo_l",
                     root=self.crop_cfg.insightface_root,

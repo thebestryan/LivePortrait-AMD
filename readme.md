@@ -121,6 +121,15 @@ Finally, install the remaining dependencies:
 pip install -r requirements.txt
 ```
 
+#### For AMD GPU (ROCm) Users 🔴
+LivePortrait's **Humans mode** runs on AMD Radeon GPUs via ROCm — the PyTorch pipeline uses the CUDA device API, which ROCm provides transparently. Install the ROCm build of PyTorch first, then the AMD requirements:
+```bash
+# tested with torch 2.3.1 + ROCm 5.7; match the index-url to your ROCm version
+pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/rocm5.7
+pip install -r requirements_amd.txt
+```
+The ONNX models (face detection + landmarks) auto-select an execution provider: `ROCMExecutionProvider` if you install `onnxruntime-rocm`, otherwise CPU (fast enough for these small models). **Animals mode is not supported on AMD** — it depends on X-Pose's custom CUDA kernels.
+
 #### For macOS  with Apple Silicon Users
 The [X-Pose](https://github.com/IDEA-Research/X-Pose) dependency does not support macOS, so you can skip its installation. While Humans mode works as usual, Animals mode is not supported. Use the provided requirements file for macOS with Apple Silicon:
 ```bash

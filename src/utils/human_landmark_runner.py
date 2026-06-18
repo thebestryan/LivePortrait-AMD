@@ -8,6 +8,7 @@ import onnxruntime
 from .timer import Timer
 from .rprint import rlog
 from .crop import crop_image, _transform_pts
+from .onnx_provider import resolve_onnx_providers
 
 
 def make_abs_path(fn):
@@ -34,10 +35,10 @@ class LandmarkRunner(object):
         self.timer = Timer()
 
         if onnx_provider.lower() == 'cuda':
+            # Auto-resolve so AMD ROCm / CPU-only builds fall back cleanly.
             self.session = onnxruntime.InferenceSession(
-                ckpt_path, providers=[
-                    ('CUDAExecutionProvider', {'device_id': device_id})
-                ]
+                ckpt_path,
+                providers=resolve_onnx_providers(prefer='cuda', device_id=device_id)
             )
         elif onnx_provider.lower() == 'mps':
             self.session = onnxruntime.InferenceSession(

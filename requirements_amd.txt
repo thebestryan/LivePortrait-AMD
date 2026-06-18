@@ -1,0 +1,21 @@
+# AMD ROCm requirements for LivePortrait (humans mode).
+#
+# 1. Install PyTorch built for ROCm FIRST (tested with torch 2.3.1 + ROCm 5.7).
+#    Pick the index-url matching your installed ROCm version:
+#      pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 \
+#        --index-url https://download.pytorch.org/whl/rocm5.7
+#
+# 2. Then install the rest:
+#      pip install -r requirements_amd.txt
+#
+# Notes:
+# - The ONNX models (face detection + landmarks) run on the CPU build of
+#   onnxruntime by default; provider selection auto-detects ROCMExecutionProvider
+#   if you install onnxruntime-rocm instead. CPU is fast enough for these.
+# - Animals mode (X-Pose) is NOT supported on AMD: it requires custom CUDA
+#   kernels that are not HIPified here.
+
+-r requirements_base.txt
+
+onnxruntime==1.18.0
+transformers==4.38.0
