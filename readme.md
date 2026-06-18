@@ -1,5 +1,8 @@
 <h1 align="center">LivePortrait: Efficient Portrait Animation with Stitching and Retargeting Control</h1>
 
+> [!NOTE]
+> **LivePortrait-AMD** is a fork of [KlingTeam/LivePortrait](https://github.com/KlingTeam/LivePortrait) that adds **AMD Radeon (ROCm)** support for Humans mode. See [For Linux or Windows Users (AMD Radeon / ROCm)](#for-linux--or-windows--users-amd-radeon--rocm-) below. All credit for LivePortrait goes to the original authors.
+
 <div align='center'>
     <a href='https://github.com/cleardusk' target='_blank'><strong>Jianzhu Guo</strong></a><sup> 1*†</sup>&emsp;
     <a href='https://github.com/Mystery099' target='_blank'><strong>Dingyun Zhang</strong></a><sup> 1,2*</sup>&emsp;
@@ -82,8 +85,8 @@ We are actively updating and improving this repository. If you find any bugs or 
 > Make sure your system has [`git`](https://git-scm.com/), [`conda`](https://anaconda.org/anaconda/conda), and [`FFmpeg`](https://ffmpeg.org/download.html) installed. For details on FFmpeg installation, see [**how to install FFmpeg**](assets/docs/how-to-install-ffmpeg.md).
 
 ```bash
-git clone https://github.com/KlingTeam/LivePortrait
-cd LivePortrait
+git clone https://github.com/thebestryan/LivePortrait-AMD
+cd LivePortrait-AMD
 
 # create env using conda
 conda create -n LivePortrait python=3.10
