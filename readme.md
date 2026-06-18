@@ -90,45 +90,24 @@ conda create -n LivePortrait python=3.10
 conda activate LivePortrait
 ```
 
-#### For Linux 🐧 or Windows 🪟 Users
-[X-Pose](https://github.com/IDEA-Research/X-Pose), required by Animals mode, is a dependency that needs to be installed. The step of `Check your CUDA versions` is **optional** if you only want to run Humans mode.
+#### For Linux 🐧 or Windows 🪟 Users (AMD Radeon / ROCm) 🔴
+This fork runs **Humans mode** on AMD Radeon GPUs via ROCm. The PyTorch pipeline drives the GPU through ROCm's device API transparently, so no NVIDIA toolkit is required. Install the ROCm build of PyTorch first:
 
-<details>
-  <summary>Check your CUDA versions</summary>
-
-  Firstly, check your current CUDA version by:
-  ```bash
-  nvcc -V # example versions: 11.1, 11.8, 12.1, etc.
-  ```
-
-  Then, install the corresponding torch version. Here are examples for different CUDA versions. Visit the [PyTorch Official Website](https://pytorch.org/get-started/previous-versions) for installation commands if your CUDA version is not listed:
-  ```bash
-  # for CUDA 11.1
-  pip install torch==1.10.1+cu111 torchvision==0.11.2 torchaudio==0.10.1 -f https://download.pytorch.org/whl/cu111/torch_stable.html
-  # for CUDA 11.8
-  pip install torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cu118
-  # for CUDA 12.1
-  pip install torch==2.3.0 torchvision==0.18.0 torchaudio==2.3.0 --index-url https://download.pytorch.org/whl/cu121
-  # ...
-  ```
-
-  **Note**: On Windows systems, some higher versions of CUDA (such as 12.4, 12.6, etc.) may lead to unknown issues. You may consider downgrading CUDA to version 11.8 for stability. See the [downgrade guide](https://github.com/dimitribarbot/sd-webui-live-portrait/blob/main/assets/docs/how-to-install-xpose.md#cuda-toolkit-118) by [@dimitribarbot](https://github.com/dimitribarbot).
-</details>
-
-
-Finally, install the remaining dependencies:
 ```bash
-pip install -r requirements.txt
+# tested with torch 2.3.1 + ROCm 5.7; match the index-url to your installed ROCm version
+# see https://pytorch.org/get-started/locally/ for other ROCm versions
+pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/rocm5.7
 ```
 
-#### For AMD GPU (ROCm) Users 🔴
-LivePortrait's **Humans mode** runs on AMD Radeon GPUs via ROCm — the PyTorch pipeline uses the CUDA device API, which ROCm provides transparently. Install the ROCm build of PyTorch first, then the AMD requirements:
+Then install the remaining dependencies:
 ```bash
-# tested with torch 2.3.1 + ROCm 5.7; match the index-url to your ROCm version
-pip install torch==2.3.1 torchvision==0.18.1 torchaudio==2.3.1 --index-url https://download.pytorch.org/whl/rocm5.7
 pip install -r requirements_amd.txt
 ```
-The ONNX models (face detection + landmarks) auto-select an execution provider: `ROCMExecutionProvider` if you install `onnxruntime-rocm`, otherwise CPU (fast enough for these small models). **Animals mode is not supported on AMD** — it depends on X-Pose's custom CUDA kernels.
+
+The ONNX models (face detection + landmarks) auto-select an execution provider: `ROCMExecutionProvider` if you install `onnxruntime-rocm`, otherwise CPU — fast enough for these small models.
+
+> [!NOTE]
+> **Animals mode is not supported on AMD.** It depends on [X-Pose](https://github.com/IDEA-Research/X-Pose), whose custom GPU kernels (`MultiScaleDeformableAttention`) are written for NVIDIA hardware and are not HIPified in this fork.
 
 #### For macOS  with Apple Silicon Users
 The [X-Pose](https://github.com/IDEA-Research/X-Pose) dependency does not support macOS, so you can skip its installation. While Humans mode works as usual, Animals mode is not supported. Use the provided requirements file for macOS with Apple Silicon:
@@ -187,9 +166,10 @@ python inference.py -h
 ```
 
 #### Fast hands-on (animals) 🐱🐶
-Animals mode is ONLY tested on Linux and Windows with NVIDIA GPU.
+> [!IMPORTANT]
+> Animals mode is **not supported in this AMD fork** — it requires [X-Pose](https://github.com/IDEA-Research/X-Pose)'s custom GPU kernels (`MultiScaleDeformableAttention`), which are built for NVIDIA hardware only. The steps below are kept for reference and require an NVIDIA GPU.
 
-You need to build an OP named `MultiScaleDeformableAttention` first (refer to the <a href="#for-linux--or-windows--users">Check your CUDA versions</a> if needed), which is used by [X-Pose](https://github.com/IDEA-Research/X-Pose), a general keypoint detection framework.
+You need to build an OP named `MultiScaleDeformableAttention` first, which is used by [X-Pose](https://github.com/IDEA-Research/X-Pose), a general keypoint detection framework.
 
 ```bash
 cd src/utils/dependencies/XPose/models/UniPose/ops
@@ -240,14 +220,14 @@ python app.py # humans mode
 PYTORCH_ENABLE_MPS_FALLBACK=1 python app.py # humans mode
 ```
 
-We also provide a Gradio interface of animals mode, which is only tested on Linux with NVIDIA GPU:
+We also provide a Gradio interface of animals mode (NVIDIA only — not supported on AMD, see the note above):
 ```bash
 python app_animals.py # animals mode 🐱🐶
 ```
 
 You can specify the `--server_port`, `--share`, `--server_name` arguments to satisfy your needs!
 
-🚀 We also provide an acceleration option `--flag_do_torch_compile`. The first-time inference triggers an optimization process (about one minute), making subsequent inferences 20-30% faster. Performance gains may vary with different CUDA versions.
+🚀 We also provide an acceleration option `--flag_do_torch_compile`. The first-time inference triggers an optimization process (about one minute), making subsequent inferences 20-30% faster. Performance gains may vary across GPUs and driver/runtime versions.
 ```bash
 # enable torch.compile for faster inference
 python app.py --flag_do_torch_compile
@@ -260,7 +240,7 @@ python app.py --flag_do_torch_compile
 We have also provided a script to evaluate the inference speed of each module:
 
 ```bash
-# For NVIDIA GPU
+# runs on AMD (ROCm) and NVIDIA GPUs
 python speed.py
 ```
 
